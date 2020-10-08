@@ -87,7 +87,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         (resource, id) = self.parse_url(self.path)
 
         # Initialize new animal
-        new_anmial = None
+        new_animal = None
 
         # Add a new animal to the list. Don't worry about
         # the orange squiggle, you'll define the create_anmial
