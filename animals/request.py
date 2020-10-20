@@ -2,6 +2,8 @@ import sqlite3
 import json
 
 from models import Animal
+from models import Location
+from models import Customer
 
 
 def get_animals_by_status(status):
@@ -91,8 +93,17 @@ def get_all_animals():
             a.breed,
             a.status,
             a.location_id,
-            a.customer_id
+            a.customer_id,
+            l.name location_name,
+            l.address location_address,
+            c.name customer_name,
+            c.address customer_address,
+            c.email customer_email
         FROM Animal a
+        JOIN Location l
+            ON l.id = a.location_id
+        JOIN Customer c
+            ON c.id = a.customer_id
         """)
 
         # Initialize an empty list to hold all animal representations
@@ -110,6 +121,24 @@ def get_all_animals():
             # Animal class above.
             animal = Animal(row['id'], row['name'], row['breed'],
                             row['status'], row['location_id'], row['customer_id'])
+
+            # Create a Location instance from the current row
+            location = Location(
+                row['location_id'], row['location_name'], row['location_address'])
+
+            # remove the location id from the results
+            del location.__dict__['id']
+
+            animal.location = location.__dict__
+
+            customer = Customer(row['customer_id'],
+                                row['customer_name'], row['customer_address'], row['customer_email'])
+
+            # remove the customer id and password field from the results
+            del customer.__dict__['id']
+            del customer.__dict__['password']
+
+            animal.customer = customer.__dict__
 
             animals.append(animal.__dict__)
 
@@ -173,15 +202,6 @@ def delete_animal(id):
         WHERE id = ?
         """, (id, ))
 
-
-# def update_animal(id, new_animal):
-#     # Iterate the ANIMALS list, but use enumerate() so that
-#     # you can access the index value of each item.
-#     for index, animal in enumerate(ANIMALS):
-#         if animal["id"] == id:
-#             # Found the animal. Update the value.
-#             ANIMALS[index] = new_animal
-#             break
 
 def update_animal(id, new_animal):
     with sqlite3.connect('../../kennel.db') as conn:
