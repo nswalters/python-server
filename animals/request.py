@@ -160,8 +160,17 @@ def get_single_animal(id):
             a.breed,
             a.status,
             a.location_id,
-            a.customer_id
+            a.customer_id,
+            l.name location_name,
+            l.address location_address,
+            c.name customer_name,
+            c.address customer_address,
+            c.email customer_email
         FROM animal a
+        JOIN location l
+            ON l.id = a.location_id
+        JOIN customer c
+            ON c.id = a.customer_id
         WHERE a.id = ?
         """, (id, ))
 
@@ -172,6 +181,23 @@ def get_single_animal(id):
         animal = Animal(data['id'], data['name'], data['breed'],
                         data['status'], data['location_id'],
                         data['customer_id'])
+
+        location = Location(data['location_id'],
+                            data['location_name'], data['location_address'])
+
+        # remove the location id from the results
+        del location.__dict__['id']
+
+        animal.location = location.__dict__
+
+        customer = Customer(data['customer_id'], data['customer_name'],
+                            data['customer_address'], data['customer_email'])
+
+        # remove the customer id and password field from the results
+        del customer.__dict__['id']
+        del customer.__dict__['password']
+
+        animal.customer = customer.__dict__
 
         return json.dumps(animal.__dict__)
 
@@ -185,7 +211,7 @@ def create_animal(new_animal):
             (name,breed,status,location_id,customer_id)
         VALUES
             (?,?,?,?,?);
-        """, (new_animal['name'], new_animal['breed'], new_animal['status'], new_animal['location_id'], new_animal['customer_id'],))
+        """, (new_animal['name'], new_animal['breed'], new_animal['treatment'], new_animal['location_id'], new_animal['customer_id'],))
 
         # The `lastrowid` property on the cursor will return
         # the primary key of the last thing that got added
